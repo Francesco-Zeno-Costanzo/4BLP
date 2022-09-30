@@ -13,7 +13,3 @@ output del tipo: (numeratore, denominatore)
 """
 print(t.as_integer_ratio())
 print(z.as_integer_ratio())
-
-[Output]
-(1351079888211149, 4503599627370496)
-(5404319552844595, 18014398509481984)
