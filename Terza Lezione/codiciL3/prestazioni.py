@@ -27,5 +27,5 @@ a2 = sum(np.sqrt(np.arange(N)))
 end = time.time()-start
 
 
-#sperabilmente sarà minore del tempo impegato prima
+#sperabilmente sarà minore del tempo impiegato prima
 print(end)
