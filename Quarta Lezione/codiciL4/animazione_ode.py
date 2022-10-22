@@ -9,7 +9,7 @@ l = 1           #lunghezza pendolo
 g = 9.81        #accellerazione di gravita'
 o0 = g/l        #frequenza piccole oscillazioni
 v0 = 0          #condizioni iniziali velocita'
-x0 = np.pi/1.1	#condizioni iniziali posizione
+x0 = np.pi/1.1	 #condizioni iniziali posizione
 tf = 15         #fin dove integrare
 
 #odeint
