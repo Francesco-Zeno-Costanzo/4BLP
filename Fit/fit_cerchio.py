@@ -17,13 +17,17 @@ def cerchio(xc, yc, r, N, phi_min=0, phi_max=2*np.pi):
 
 
 
-def fitcerchio(pt):
+def fitcerchio(pt, w=None):
     '''
     fit di un cerchio con metodo di coope
     Parameters
     ----------
     pt : 2Darray
         contiene le coordinate del cerchio
+    w : None or 1Darray
+        w = np.sqrt(dx**2 + dy**2)
+        if None => w = np.ones(len(pt[0]))
+
 
     Returns
     -----------
@@ -37,11 +41,17 @@ def fitcerchio(pt):
         matrice di covarianza
     '''
     npt = len(pt[0])
+
     S = np.column_stack((pt.T, np.ones(npt)))
     y = (pt**2).sum(axis=0)
 
-    A = S.T @ S #@ è il prodotto matriciale
-    b = S.T @ y
+    if w is None:
+        w = np.ones(npt)
+
+    w = np.diag(1/w)
+
+    A = S.T @ w @ S #@ è il prodotto matriciale
+    b = S.T @ w @ y
     sol = np.linalg.solve(A, b)
 
     c = 0.5*sol[:-1]
@@ -56,12 +66,13 @@ def fitcerchio(pt):
 
 
 if __name__ == "__main__":
+    np.random.seed(69420)
     #numero di punti
     N = 50
     #paramentri cerchio
     xc, yc, r1 = 5, -2, 10
     #errori
-    ex, ey= 0.5, 0.5
+    ex, ey = 0.5, 0.5
     dy = np.array(N*[ey])
     dx = np.array(N*[ex])
     dr = np.sqrt(dx**2 + dy**2)
@@ -73,11 +84,11 @@ if __name__ == "__main__":
     y = y + l
 
     a = np.array([x, y])
-    c, r, d , A = fitcerchio(a) #fit
+    c, r, d , A = fitcerchio(a, dr) #fit
 
-    print(f'x_c = {c[0]:.5f} +- {d[0]:.5f}; valore esatto={xc:.5f}')
-    print(f'y_c = {c[1]:.5f} +- {d[1]:.5f}; valore esatto={yc:.5f}')
-    print(f'r   = {r:.5f} +- {d[2]:.5f}; valore esatto={r1:.5f}')
+    print(f'x_c = {c[0]:.5f} +- {d[0]:.5f}; valore esatto = {xc:.5f}')
+    print(f'y_c = {c[1]:.5f} +- {d[1]:.5f}; valore esatto = {yc:.5f}')
+    print(f'r   = {r:.5f} +- {d[2]:.5f}; valore esatto = {r1:.5f}')
 
 
     chisq = sum(((np.sqrt((x-c[0])**2 + (y-c[1])**2) - r)/dr)**2.)
