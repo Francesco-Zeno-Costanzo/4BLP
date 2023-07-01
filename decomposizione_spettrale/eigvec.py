@@ -3,7 +3,7 @@ import numpy as np
 import scipy.special as ssp
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
-from inverse import inverse as inv
+
 
 def eig(M, k=None, tol=1e-10, magnitude='small'):
     '''
@@ -43,7 +43,7 @@ def eig(M, k=None, tol=1e-10, magnitude='small'):
     '''
 
     if magnitude == 'small':
-        A = np.copy(inv(M, False))
+        A = np.copy(np.linalg.inv(M))
     if magnitude == 'big':
         A = np.copy(M)
         
@@ -58,6 +58,7 @@ def eig(M, k=None, tol=1e-10, magnitude='small'):
     for _ in range(k):
 
         v_p = np.random.randn(N) #initial vector
+        v_p = v_p / np.sqrt(sum(v_p**2))
         l_v = np.random.random()
         Iter= 0
 
@@ -185,7 +186,7 @@ if __name__ == "__main__":
 
     np.random.seed(69420)
     
-    test(100, 100, 'small')
+    test(100, 100, 'big')
     
 #===============================================================================
 # Computational parameter
@@ -232,9 +233,9 @@ if __name__ == "__main__":
         return (1/(np.pi)**(1/4))*(1/np.sqrt((2**m)*ssp.gamma(m+1)))*ssp.eval_hermite(m, x)*np.exp(-(x**2)/2)
 
     plt.figure(1)
-    plt.title("$\psi(x)$", fontsize=20)
+    plt.title("Oscillatore armoico", fontsize=15)
     plt.xlabel('x', fontsize=15)
-    plt.ylabel('$\psi(x)$', fontsize=15)
+    plt.ylabel(r'$\psi(x)$', fontsize=15)
     plt.grid()
     plt.ylim(0, 3)
     plt.xlim(-5, 5)
@@ -248,7 +249,7 @@ if __name__ == "__main__":
         plt.plot(xp, np.ones(len(xp))*eigval[L], color=c[L], linestyle='--', label='$E_{%d}=%f$' %(L, eigval[L]))
         plt.plot(xp, abs(G(xp, L))**2 + eigval[L], color='k')
         
-    plt.legend(loc='best')
+    #plt.legend(loc='best')
     
     plt.figure(2)
     plt.title("$\psi(x)$", fontsize=20)
