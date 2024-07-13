@@ -8701,6 +8701,281 @@ Vediamo che l'accuratezza e abbastanza buona, parente di quella sui dati di test
 Fin ora ogni codice che abbiamo scritto, o quasi (cfr. la rete neurale dell'ultima lezione avanzata grazie a numpy), è sempre stato un codice che eseguiva un solo processo. Mi spiego meglio: il vostro computer possiede un processore, la CPU (Central Processing Unit), il quale ha un certo numero di core. Quando voi eseguite un codice il vostro pc si carica in RAM (Random Access Memory [Daft Punk]) le informazioni necessari e affida ad uno dei core il quale fa tutto il lavoro. In realtà i calcoli non vengono eseguiti tutti da uno stesso core se il processo ci impiega molto, ma il lavoro viene diviso sempre usando però un core alla volta. Quel che vogliamo fare noi è usare più core contemporaneamente. Prima di andare avanti facciamo un apiccola dichiarazione di intenti; parlaremo solo di calcolo parallelo su CPU e non su GPU. Questo perchè benché le GPU abbiano molti più core di una CPU e quindi ottimizzerebbero le operazioni in modo migliori sono più delicate. Infatti con la GPU dobbiamo gestire noi tutti i trafserimenti di informazioni mente con la CPU a meno di non dover far comunicare due core diversi non dovremmo preoccuparci di nulla perchè ci penserà il pc a caricarsi tutte le informazioni necessari e a smistarle a seconda delle esegenze. Inoltre per programmare su GPU serve che il vostro computer abbia una scheda grafica NVIDIA, perchè praticamente utte le librerie necessarie si interfacciano con questo tipo di GPU. Il mio pc come scheda video ha invece una Radeon.\\
 Ci sono, in linea di principio due vie per parallelizzare un codice usrae i thread o i processi, ma c'è anche un problema che impedisce la percorrenza di una delle due vie: il GIL. Python ha infatti una caratteristica particolare nota come Global Interpreter Lock (GIL). Il GIL è un mutex (mutual exclusion) che protegge l'accesso alla memoria, impedendo che più thread nativi eseguano bytecode Python simultaneamente. Questo meccanismo è stato introdotto per facilitare la gestione della memoria interna e garantire la sicurezza del thread, ma introduce una limitazione significativa nel calcolo parallelo. Per aggirare il problema del GIL, Python fornisce il modulo "multiprocessing", che permette di creare nuovi processi invece di thread. Poiché i processi hanno spazi di indirizzamento della memoria separati, il GIL non rappresenta un ostacolo, consentendo un vero parallelismo.
 Il modulo "multiprocessing" offre una API simile a quella del modulo "threading", ma crea processi distinti, ognuno con il proprio interprete Python e spazio di memoria. Questo ci permette quindi di usare effettivamente più core insieme e diminuire quindi il tempo di esecuzione del nostro codice. Prima di inziare a vedere un po' di codice dobbiamo porci una domanda: ha senso parallellizare un codice? Infatti non tutti i problemi sono parallelizabili, magari un core sta facendo un certo calcolo ma ha bisogno dei risultati di un secondo calcolo che viene svolto da un altro core; dunque il primo core dovrà aspettare che il secondo abbia finito per iniziare ad eseguire, perdendo il vantaggio di fare le cose in contemporanea. Dobbiamo poi anche assicuraci di gestire bene la comunicazione dei processi in quanto quella è seriale e per cui rallenta l'esecuzione. Quindi se il calcolo da fare è veloce perchè distribuito ma poi tutti i core devono mettersi in conclave a scambiarsi le informazioni ogni secondo ciò potrebbe condurre ad un rallentamento dell'esecuzione. Finita questa breve introduzione cominciamo a vedere un esempio:
+\begin{lstlisting}[language=Python]
+""" Hello world parallel
+"""
+import multiprocessing as mp
+
+def f(name):
+    print(f"Hello {name}")
+
+if __name__ == "__main__":
+    # Creo il processo passando la funzione da
+    # parallelizzare e relativi argomenti
+    p = mp.Process(target=f, args=("World",))
+    # Parte l'esecuzione
+    p.start()
+    # Termina l'esecuzione
+    p.join()
+
+[Output]
+Hello World
+\end{lstlisting}
+Analizziamo il codice: chiaramente partiamo importando la libreria, poi definiamo una funzione esempio che sarà quella da eseguire in parallelo infine abbiamo il main del codice.
+Ormai avrete capito che è buona norma scrivere il main così, inoltre se non sono cambiate cose nel mezzo, se usate pyzo è necessario che voi usiate il main così e il codice va runnato non premendo f5 o Ctrl+E ma con Ctrl+Shift+E; altrimenti non funziona. Per gli altri non dovtreste avere problemi del genere, io con vscode faccio tutto come al solito. Finita questa breve parentesi andiamo ad analizzare il main: come prima crosa definamo p il processo che deve eseguire f, poi lo facciamo partire e attendiamo finisca. Ora chiaramente abbiamo stanziato un singolo processo quindi non c'è stata una parallelizazione ma era giusto per iniziare a prendere familiarità con la sintassi. Vediamo ora con più processi:
+\begin{lstlisting}[language=Python]
+""" Hello world parallel
+"""
+import multiprocessing as mp
+
+def f(x, name, output):
+    '''
+    funzione che "stampa" in parallelo hello world
+
+    Parameters
+    ----------
+    x : int
+        indice del processo
+    name : string
+        nome da stampare
+    output : queue form multiprocessing
+        memoria condivisa per conservare
+        l'output di questa funzione 
+    '''
+    msg = f"Hello {name}"
+    output.put((x, msg))
+
+if __name__ == "__main__":
+    # Coda degli output (Memoria condivisa)
+    output = mp.Queue()
+
+    # Creo una lista processi da eseguire, ne creiamo 4
+    processes = [mp.Process(target=f, args=(x, "World", output)) for x in range(4)]
+
+    # Eseguo i processi
+    for p in processes:
+        p.start()
+
+    # Esco dai processi finiti
+    for p in processes:
+        p.join()
+
+    # Estraggo i risultati dalla  coda degli output
+    results = [output.get() for p in processes]
+
+    print(results)
+
+[Output]
+[(0, 'Hello World'), (2, 'Hello World'), (1, 'Hello World'), (3, 'Hello World')]
+\end{lstlisting}
+Vediamo qui cosa sta succedendo, partiamo dal main sedguendo il flusso del codice. Come prima cosa creiamo una coda con "mp.Queue" ovvero un luogo dove processi diversi possono andare a scrivere, ricordiamo che i processi hanno memorie separate, quindi questa è chiamata memoria condivisa. Creiamo poi 4 processi, vedete che ora gli argomenti della funzione sono cambiati, passiamo in imput un idice per tenere conto del proce, il nome da stampare e anche la coda su cui andremo a conservare l'output. Poi facciamo partire ogni processo, attendiamo che tutti finiscano, e poi mettiamo i risultati in una lista che stampiamo. Dal risultato vediamo che i numeri non sono in ordine, infatti quando paralelliziamo qualcosa facendo partire più processi non possiamo sapre chi finirà prima e quindi in genere i risultati non saranno in ordine. Come facciamo però effettivamente che siano processi diversi ad esguire? Ci basta guardare l'id del processo:
+\begin{lstlisting}[language=Python]
+""" Codice per test id processi
+"""
+import os
+import time
+import multiprocessing as mp
+
+def cube(x):
+    ''' Funzione che calcola il cubo di x
+    '''
+    son_ID = os.getpid()
+    dad_ID = os.getppid()
+    print(f"son={son_ID}, dad={dad_ID}")
+    time.sleep(1)
+    return x**3
+
+
+if __name__ == "__main__":
+
+    start = time.time()
+    # Uso Pool per creare i processi
+    pool  = mp.Pool(processes=8)
+
+    # Tramite map applico la funzione cube 
+    # ad ogni elemento di range per ogni elemento di pool
+    results = pool.map(cube, range(8))
+    print(results)
+
+    end = time.time() - start
+    print(f"Elapsed time = {end}")
+
+[Output]
+son=19246, dad=19245
+son=19247, dad=19245
+son=19248, dad=19245
+son=19249, dad=19245
+son=19250, dad=19245
+son=19251, dad=19245
+son=19252, dad=19245
+son=19253, dad=19245
+[0, 1, 8, 27, 64, 125, 216, 343]
+Elapsed time = 1.0376229286193848
+\end{lstlisting}
+Qui stavolta usimo pool per creare i diversi processi, tramite map applichiamo la nostra funzione all'iterabile "range(8)" (esattamente come si comporta la funzione built-in di python), però essendo questa map un metodo di pool ogni processo si prende carico di una chiamata della funzione. Ovviamente ogni processo si prende 1/8 delle chiamate della funzione, perchè abbiamo stanziati 8 processi infatti vediamo che l'id dei processi"figlio" sono tutti diversi e il codice termina in poco più di un secondo. Se stanziassimo invce 1 solo processo avremo che l'id figlio sarebbe sempre lo stesso e il codice terminerebbe in 8 secondi, perchè lo stesso processo si prende carico di tutte le chiamate della funzione (che sono 8 perchè abbiamo scritto "range(8)"). \\
+Mostriamo ora un esempio classico di comunicazione e sincronizzazione dei processi. Abbiamo una variabile che un processo incrementa di uno e un altro decrementa di uno. Dunque è logico aspettarsi che a fine codice il valore della variabile sia lo stesso di quello di partenza:
+\begin{lstlisting}[language=Python]
+""" Codice per mostrare la sincornizzazione
+"""
+import multiprocessing as mp
+
+def prelievo(bilancio, N):
+    ''' funzione che togle 1 ad una variabile nella shared memory N volte
+    '''
+    for i in range(N):
+        bilancio.value = bilancio.value - 1
+
+def deposito(bilancio, N):
+    ''' funzione che aggiunge 1 ad una variabile nella shared memory N volte
+    '''
+    for i in range(N):
+        bilancio.value = bilancio.value + 1
+
+def transizioni():
+    # Variabile nella memoria condivisa, 'f' perche sia float
+    # entrabi i processi possono accedervi e cambiarla
+    bilancio = mp.Value('f', 100)
+
+    # Cero i processi
+    p1 = mp.Process(target=prelievo, args=(bilancio, 10000))
+    p2 = mp.Process(target=deposito, args=(bilancio, 10000))
+
+    # Faccio partire i processi
+    p1.start()
+    p2.start()
+
+    # Aspetto la fine
+    p1.join()
+    p2.join()
+
+    print(f"bilancio finale = {bilancio.value}")
+
+if __name__ == "__main__":
+    transizioni()
+
+[Output]
+1251.0
+\end{lstlisting}
+Siamo partiti da 100 e siamo arrivati a 1251. Ora più che aver guadagnato investendo in borsa, quello che è successo che i due processi per più volte sono andati ad accedere contemporaneamente alla variabile e uno dei due arrivato leggermente dopo fa terminare il precendente prima che abbia scritto e scrive quindi solo il secondo. Per ovviare a questo problema dobbiamo metter il lock, ovvero una cosa che il processo controlla prima di accedere alla variabile. Così se il processo 1 vede che il lock è acquisito dal processo 2 deve attendere che il processo due finisca di scrivere e liberi il lock. Una volta che il lock è libero, il processo due lo può acquisire ed andare a modificare la variabile senza che vi siano conflitti. Vediamo come si modifica il codice:
+\begin{lstlisting}[language=Python]
+""" Codice per mostrare la sincornizzazione
+"""
+import multiprocessing as mp
+
+def prelievo(bilancio, lock, N):
+    ''' funzione che togle 1 ad una variabile nella shared memory N volte
+    '''
+    for i in range(N):
+        lock.acquire()
+        bilancio.value = bilancio.value - 1
+        lock.release()
+
+def deposito(bilancio, lock, N):
+    ''' funzione che aggiunge 1 ad una variabile nella shared memory N volte
+    '''
+    for i in range(N):
+        lock.acquire()
+        bilancio.value = bilancio.value + 1
+        lock.release()
+
+def transizioni():
+    # Variabile nella memoria condivisa, 'f' perche sia float
+    # entrabi i processi possono accedervi e cambiarla
+    bilancio = mp.Value('f', 100)
+
+    # Se un processo vede che il lock e' acquisito
+    # non agisce finche' lo stesso non viene rilasciato
+    lock = mp.Lock()
+
+    # Cero i processi
+    p1 = mp.Process(target=prelievo, args=(bilancio, lock, 10000))
+    p2 = mp.Process(target=deposito, args=(bilancio, lock, 10000))
+
+    # Faccio partire i processi
+    p1.start()
+    p2.start()
+
+    # Aspetto la fine
+    p1.join()
+    p2.join()
+
+    print(f"bilancio finale = {bilancio.value}")
+
+if __name__ == "__main__":
+    
+    transizioni()
+
+[Output]
+100.0
+\end{lstlisting}
+Ora è andato tutto correttamente, le operazioni di prelievo e deposito sono state fatte lo stesso numeor di volte e siamo tornati in pari.\\
+Fatto questo vi lascio con un ultimo esempio per far girare tutti i core del votro pc come dei veri stakanovisti. mettiamoci a calcolare pi greco con montecarlo, in seriale e in parallelo:
+\begin{lstlisting}[language=Python]
+import time
+import random
+import multiprocessing as mp
+
+def compute_pi_s(N):
+    inside = 0
+    for _ in range(N):
+        x, y = random.random(), random.random()
+        if x**2 + y**2 <= 1:
+            inside += 1
+    return 4 * inside / N
+
+
+def compute_pi_p(N):
+    inside = 0
+    for _ in range(N):
+        x, y = random.random(), random.random()
+        if x**2 + y**2 <= 1:
+            inside += 1
+    return inside
+
+if __name__ == "__main__":
+
+    N = int(1e8)
+
+    start = time.time()
+    pi    = compute_pi_s(N)
+    end   = time.time() - start
+
+    print(f"Pi greco: {pi}")
+    print(f"Serial time: {end:.2f} secondi")
+
+    # Stanzio tutti i processi che posso stanziare
+    n_pro = mp.cpu_count()
+    pool  = mp.Pool(processes=n_pro)
+
+    # Ogni processo si divide equamente il numero di sample
+    samples_per_process = N // n_pro
+
+    start   = time.time()
+    results = pool.map(compute_pi_p, [samples_per_process] * n_pro)
+    inside  = sum(results)
+    pi      = (inside / N) * 4
+    end     = time.time() - start
+
+    print(f"Pi greco: {pi}")
+    print(f"Parallel time: {end:.2f} secondi")
+
+[Output]
+Stima di pi: 3.14127056
+Serial time: 32.90 secondi
+Stima di pi: 3.141583
+Parallel time: 9.53 secondi
+\end{lstlisting}
+Unica cosa che magari potrebbe sembrare strana è che anche se le cpu usate sono 8, nel mio caso, ho ottenuto un guadagno solo di circa 4. Questo può essere dovuto a vari problematiche, ad esempio l'apertura e la chiusura dei processi, la raccolta del risultato, il mio computer che deve pur vivere con le altre applicazioni aperte e mentre il codice gira. Anche con un altro codice, che fattorizza una lista di numeri dividendosi la lista in vari processi ottengo un output analogo per le tempistiche:
+\begin{lstlisting}[language=Python]
+serial time: 5.201
+process time: 2.833 with 2 processes
+process time: 1.847 with 4 processes
+process time: 1.843 with 8 processes
+\end{lstlisting}
+
+
+
+
 
 \newpage
 
