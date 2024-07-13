@@ -1,45 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-#========================================================================
-# Primo Esercizio
-#========================================================================
-print("Primo Esercizio:")
 
-def Area(l, n):
-    '''
-    funzione per calcolare l'area di un poligono
-    regolare di lato l e numero lati n
-    '''
-    a = l/2 * 1/np.tan(np.pi/n) # apotema
-    p = n*l                     # perimetro
-    A = p*a/2                   # area
-    return A
-
-l = [3, 4, 5]        # dimesioni dei lati, (terna pitagorica)
-n = np.arange(4, 12) # numero di lati dei poligoni
-
-A3, A4, A5 = [], [], []
-# liste in cui ci saranno le aree dei poligoni di lato rispettivamente 3, 4, 5
-
-for n_i in n:     # loop sul numero di lati
-    for l_i in l: # lup sulla dimesione
-    
-        A0 = Area(l_i, n_i) # calcolo dell'area
-
-        if l_i == 3:  # conservo a seconda dei lati
-            A3.append(A0)
-        elif l_i == 4:
-            A4.append(A0)
-        elif l_i == 5:
-            A5.append(A0)
-
-
-for i in range(len(n)):
-    print(f'A3 + A4 = {A3[i]+A4[i]:.3f}')
-    print(f'   A5   = {A5[i]:.3f}')
-
-print()
 #========================================================================
 # Secondo Esercizio
 #========================================================================
@@ -120,36 +82,6 @@ print()
 #========================================================================
 print("Quinto Esercizio:")
 
-Area = lambda l, n : (l/2 * 1/np.tan(np.pi/n))*(n*l)/2
-
-l = [3, 4, 5]        # dimesioni dei lati, (terna pitagorica)
-n = np.arange(4, 12) # numero di lati dei poligoni
-
-A3, A4, A5 = [], [], []
-# liste in cui ci saranno le aree dei poligoni di lato rispettivamente 3, 4, 5
-
-for n_i in n:     # loop sul numero di lati
-    for l_i in l: # lup sulla dimesione
-    
-        A0 = Area(l_i, n_i) # calcolo dell'area
-
-        if l_i == 3:  # conservo a seconda dei lati
-            A3.append(A0)
-        elif l_i == 4:
-            A4.append(A0)
-        elif l_i == 5:
-            A5.append(A0)
-
-
-for i in range(len(n)):
-    print(f'A3 + A4 = {A3[i]+A4[i]:.3f}')
-    print(f'   A5   = {A5[i]:.3f}')
-
-print()
-#========================================================================
-# Sesto Esercizio
-#========================================================================
-
 # Gaussiana
 m = 0
 s = 1
@@ -169,28 +101,8 @@ plt.plot(x, np.exp(-(x-m)**2 / (2*s**2))/np.sqrt(2*np.pi*s**2), 'b', label=f"N({
 plt.legend(loc='best')
 plt.show()
 
-#========================================================================
-# Settimo Esercizio
-#========================================================================
-print("Settimo Esercizio:")
 
-def obs(x):
-    '''
-    funzione che dato un set di dati x in input
-    restituisce media e deviazione standard
-    '''
-    N = len(x)
-    
-    media = sum(x)/N
-    varianza = sum( (x - media)**2)/(N*(N-1))
-    dev_std = np.sqrt(varianza)
-    
-    return media, dev_std
 
-dati = np.array([0, 3, 5, 1, 5, 667, 2, 4, 9, 3, 33])
-
-m, dm = obs(dati)
-print(f"media = {m:.3f} +- {dm:.3f}")
 
 
 
