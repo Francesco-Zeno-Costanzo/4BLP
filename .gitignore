@@ -1,0 +1,7 @@
+*.dvi
+*.log
+*.out
+*.aux
+*.toc
+*.gz
+texsrc/
