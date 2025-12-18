@@ -1,0 +1,379 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{placeins}
+\usepackage{diagbox}
+\usepackage{wrapfig}
+\usepackage{quoting}
+\usepackage{ragged2e}
+\usepackage{multicol}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{pgfplots}
+\usepackage{neuralnetwork}
+\usepackage{lettrine}
+\usepackage[all]{tengwarscript}
+
+\setlist[enumerate]{nosep}
+\setlist[itemize]{nosep}
+\setlist[description]{nosep}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+%"mystyle" code listing set
+\lstset{style=mystyle}
+\renewcommand% 
+{\LettrineFontHook}% 
+{\fontfamily{calligra}}% 
+\renewcommand% 
+{\LettrineTextFont}{\itshape} 
+
+\author{{\LARGE Francesco Zeno Costanzo}}
+\title{{\Huge (Le non) 4 (e per nulla) Brevi lezioni di Python}}
+\date{(Do you remember the) 21 (st night of) September 2025}
+
+\begin{document}
+\maketitle
+
+
+
+\begin{center}
+\includegraphics[scale=1]{img/logo.pdf}
+\end{center}
+
+\vfill
+\begin{quote}
+    I think, it's time we blow this scene.\\
+    Get everybody and the stuff together.\\
+    Ok three, two, one, let's jam.\\
+    Seatbelts, Tank! (1999)
+\end{quote}
+
+
+\newpage
+\tableofcontents
+\newpage
+\hypersetup{hidelinks}
+
+
+\section{Scopo, storia delle note e caveat}
+Lo scopo di queste note è fornire una breve introduzione al linguaggio di programmazione Python per il corso: "Quattro brevi lezioni di Python", organizzato dal comitato locale AISF Pisa.
+Sono in realtà presenti più elementi del necessario nella volontà o di approfondire alcuni aspetti o, più che altro, di dare un assaggio, un'introduzione, di quello che nella vita di un fisico capita spesso di utilizzare (gli argomenti introdotti sono molti, di vario genere, e una trattazione esaustiva richiederebbe troppo lavoro. Inoltre esiste una quantità di letteratura a riguardo da far impallidire la famosa biblioteca d'Alessandria). Non pretendo vengano letti ma se siete curiosi, loro son lì, non mordono.
+\\
+
+\noindent Nonostante la copiosa aggiunta di argomenti come appendici, essere rimangono tali, in quanto ciò che c'è di programmazione {\it tout court} è (fatto salvo qualche piccola eccezione) inserito nelle "lezioni", secondo l'originale scopo di queste note.
+Con il tempo, in verità anche queste sono andate un allungandosi con l'aggiunta di argomenti che reputavo interessante trattare. Tant'è che in una singola lezione di un'ora e mezza può non bastare per esaurire le pagine qui scritte.
+Alcune di queste appendici, scelte per interesse, utilità o per semplicità sono state trattate nel "corso avanzato"; corso nato proprio in seguito a questo sproloquio di argomenti. Proprio per questa scelta soggettiva degli argomenti qui rimane annoverato tutto come appendici, cercando di dare per il lettore un filo logico e di legami di propedeuticità per gli argomenti trattati. Cosa che magari in quelli selezionati per le lezioni non si fa, dando per buono alcuni punti di parte.
+\\
+
+\noindent Nelle note sono presenti i codici in modo che possano essere consistenti da sole e quindi il lettore possa rendersi subito conto di come implementare il tutto. Tuttavia copiare e incollare i codici potrebbe creare fastidio quando saranno eseguiti, a causa di come i vari editor leggono spazi, segni di operazioni o altro; conviene piuttosto copiarli a mano o prenderli dalla cartella dove sono presenti anche queste note: \url{https://github.com/Francesco-Zeno-Costanzo/4BLP} (In realtà nel momento in cui scrivo questa frase, in quella repo vi è solo questo file, ma vi e anche il link che rimanda ad un altra repo dove i codici sono presenti). Alcuni commenti di codici sono in inglese perché si tratta di codici presenti anche in altre repository della mia pagina github. Spero, data la natura di queste note, che mi perdonerete il bilinguismo. \\
+
+\noindent Queste note sono, almeno per ora, in continuo aggiornamento. A seconda se ritengo interessante inserire l'argomento. 
+
+
+\newpage
+
+\section{Introduzione}
+Python è un linguaggio di programmazione generalista noto per la sua semplicità e leggibilità, caratteristiche che lo rendono particolarmente accessibile a noi poveri umani. Scrivere codice in Python è spesso più leggero e scorrevole rispetto a linguaggi come C o Fortran, grazie a una sintassi intuitiva e vicina al linguaggio "naturale" (i.e. il nostro).
+A differenza di molti altri linguaggi (e.g. C o fortran), Python è interpretato e non compilato. Questo significa che il codice viene eseguito direttamente da un interprete senza la necessità di una fase di compilazione preliminare. Tale caratteristica offre alcuni vantaggi significativi: se si verifica un errore durante l'esecuzione, l'interprete segnala immediatamente il problema e indica la linea di codice incriminata, facilitando il debug. Nei linguaggi compilati, invece, il codice viene prima tradotto in un file eseguibile indipendente, Perdendo dunque ogni collegamento diretto con il sorgente originale. Di conseguenza, se si verifica un errore a tempo di esecuzione, come il famigerato \textit{segmentation fault}, può essere molto più difficile individuare la causa.
+Ovviamente, come insegna la conservazione della massa, nulla si crea e nulla si distrugge: botte piena o moglie ubriaca \textit{tertium non datur}. Il principale svantaggio di un linguaggio interpretato rispetto a uno compilato è la velocità di esecuzione. Python è sensibilmente più lento di C o Fortran, poiché il codice viene analizzato e interpretato riga per riga anziché essere eseguito direttamente in linguaggio macchina. Tuttavia, l’ampia gamma di librerie ottimizzate disponibili per Python (come NumPy, Scipy, Pandas o TensorFlow e potremmo andare avanti per molto) consente di mitigare questo problema, delegando i calcoli più pesanti a codice scritto in C o fortran appunto.
+Un altro punto di forza di Python è la sua versatilità. È usato in numerosi campi, calcolo scientifico, analisi dati, intelligenza artificiale, sviluppo web o anche sicurezza informatica. Quindi tanta roba da fare, avremo tempo per discuterne. 
+
+\[
+\]
+\begin{center}
+\includegraphics[scale=0.7]{img/fixing_problems.png}
+\end{center}
+
+\subsection{Notazioni}
+Nel seguito delle note saranno presenti codici in dei riquadri e, per completezza, dopo la riga [Output] viene presentato anche il risultato degli stessi nel caso ci fossero (i.e. ciò che viene stampato su shell).
+
+\subsection{I 4 (per ora) comandamenti dell'informatica}
+\begin{itemize}
+\item Se funziona quanto basta\\
+non toccare che si guasta.
+\item RTFM: Read The Fucking Manual. La documentazione on-line è il miglior posto dove trovare risposte.
+\item Non dite che non funziona finché non avete provato a spegnere e riaccendere.
+\item Il computer fa esattamente quello che voi gli dite di fare non quello che volete che faccia.
+\end{itemize}
+
+\newpage
+
+\section{Lezione Zero: Installazione}
+\subsection{Installazione dell'ambiente: Pyzo}
+Il primo passo è procurarsi l'ambiente software tramite il quale è possibile scrivere, gestire e compilare il codice. La scelta su quale ambiente utilizzare è chiaramente arbitraria e soggetta al gusto del singolo. Un buon ambiente che si consiglia è Pyzo. Alla pagina \url{https://pyzo.org/start.html} è possibile trovare i link per scaricare l'opportuno installer a seconda del sistema operativo che si usa (quelli indicati sotto lo Step 1). Si faccia anche attenzione alla differenza tra gli installer per sistemi a 32 o 64 bit\footnote{Al seguente link potete trovare informazioni per scoprire, nel caso in cui non lo sapeste, se l'architettura del vostro computer è a 32 o 64 bit: \url{https://support.microsoft.com/it-it/help/15056/windows-7-32-64-bit-faq}}. Nel caso in cui vi piaccia smanettare con i sistemi Linux, consigliamo come procedura alternativa (e più immediata) accedere al terminale e digitare i seguenti comandi:
+\begin{lstlisting}
+$ sudo apt -get install python3 -pip python3 - pyqt5
+$ sudo python3 -m pip install pyzo -- upgrade
+$ pyzo
+\end{lstlisting}
+Tramite l'ultimo comando si accede alla schermata dell'ambiente Pyzo. A seconda della distribuzione che si utilizza potrebbe essere necessario utilizzare il comando yum al posto di apt-get, in particolare se utilizzate Fedora e derivati invece di Debian/Ubuntu.
+
+\subsection{Installazione dell'interprete: Anaconda}
+Ora che abbiamo l'ambiente bisogna munirisi di un interprete. Tra i tanti, si consiglia Anaconda, che porta in automatico tutti i pacchetti necessari per il lavoro scientifico. Esso è reperibile al seguente indirizzo: \url{https://www.anaconda.com/download/}. Allo scopo di mantenere la compatibilità con il sistema Pyzo si raccomanda di scaricare la versione corrispondente a Python 3 e non Python 2. Alternativamente è possibile procurarsi Miniconda, che è una versione ridotta e più leggera di Anaconda che arriva con molti meno pacchetti, ma occupa chiaramente meno spazio in memoria. Esso è reperibile al seguente indirizzo: \url{https://conda.io/miniconda.html}. È fortemente consigliato installare l'interprete nella cartella di default, in modo da rendere più semplice il lavoro di riconoscimento del programma da parte di Pyzo. Una volta installato l'interprete, aprendo Pyzo dovreste essere in grado di riconoscere sulla sinistra un editor di testo e sulla destra, uno sopra l'altro, una console per l'inserimento dei comandi e un file browser
+per accedere in modo più immediato alle cartelle del computer.
+Una volta aperto Pyzo, quest'ultimo dovrebbe riconoscere automaticamente l'interprete appena installato (Anaconda, Miniconda o altro) e potrebbe chiedervi di confermare questa scelta. Nel caso invece non riesca a trovare da solo l'interprete, magari perché installato in una cartella diversa da quella di default o perché ne avete installato più di una versione, bisogna selezionarlo manualmente tramite la procedura seguente.
+Dalla schermata principale di Pyzo, selezionate il menu "Shell" in alto, scegliendo quindi "Edit shell configurations". Nella finestra che viene aperta, selezionate dal menu a tendina del campo "exe" la versione di Python (ad esempio, anaconda3) che avete appena installato. Cliccate sul pulsante "Done" e poi riavviate Pyzo per terminare questa procedura.
+Se invece non vedete l'interprete appena installato tra le opzioni del menu a tendina, occorre specificare manualmente il percorso intero dove è stato installato l'interprete. Dato che sono stati registrati numerosi problemi nella ricerca del percorso da indicare per quanto riguarda Anaconda su Mac OS, di seguito è riportato un template del percorso dove avviene l'installazione di default, da indicare per intero.
+\begin{lstlisting}
+/Users/nome_utente/opt/anaconda3/bin/python
+\end{lstlisting}
+oppure
+\begin{lstlisting}
+/Users/nome_utente/anaconda3/bin/python
+\end{lstlisting}
+
+
+\subsection{Installazione dei pacchetti}
+Python, come tanti altri linguaggi di programmazione, dispone di pacchetti di funzioni già pronte e direttamente utilizzabili da parte del programmatore. Anaconda contiene già tutti i pacchetti che ci serviranno, nel caso in cui abbiate optato per Miniconda, è probabile che abbiate bisogno di scaricare alcuni pacchetti aggiuntivi. L'operazione può essere effettuata accedendo alla console di Pyzo e digitando semplicemente:
+
+\begin{lstlisting}[language=Python]
+install <nome_del_pacchetto >
+\end{lstlisting}
+oppure
+\begin{lstlisting}[language=Python]
+pip install <nome_del_pacchetto >
+\end{lstlisting}
+
+Per essere sicuri che sia andato tutto bene provate a scrivere:
+\begin{lstlisting}[language=Python]
+import <nome_del_pacchetto >
+\end{lstlisting}
+se non succede nulla siete apposto
+
+
+\newpage
+
+\section{The Zen of Python}
+Una volta installato pyzo, oppure python, aprite un terminale, che sia quello di pyzo, la shell di ubuntu (dopo aver digitato python3), o di anaconda, e scrivete: 
+\begin{lstlisting}[language=Python]
+>>> import this
+\end{lstlisting}
+ecco cosa uscirà: \\
+
+\noindent The Zen of Python, by Tim Peters \\
+
+\noindent Beautiful is better than ugly.\\
+Explicit is better than implicit.\\
+Simple is better than complex.\\
+Complex is better than complicated.\\
+Flat is better than nested.\\
+Sparse is better than dense.\\
+Readability counts.\\
+Special cases aren't special enough to break the rules.\\
+Although practicality beats purity.\\
+Errors should never pass silently.\\
+Unless explicitly silenced.\\
+In the face of ambiguity, refuse the temptation to guess.\\
+There should be one-- and preferably only one --obvious way to do it.\\
+Although that way may not be obvious at first unless you're Dutch.\\
+Now is better than never.\\
+Although never is often better than *right* now.\\
+If the implementation is hard to explain, it's a bad idea.\\
+If the implementation is easy to explain, it may be a good idea.\\
+Namespaces are one honking great idea -- let's do more of those!\\
+
+Delle interessanti linee guida di certo.
+\newpage
+\input{texsrc/Lezione1}
+\newpage
+\input{texsrc/Lezione2}
+\newpage
+\input{texsrc/Lezione3}
+\newpage
+\input{texsrc/Lezione4}
+\newpage
+\input{texsrc/Lezione_Bonus}
+\newpage
+\appendix
+\section*{\huge \textbf{\textit{Hic Sunt Dracones}}}
+\lettrine[findent=12pt,nindent=-2pt]{Q}{ui ci sono i dragi}. Così sulle mappe medievali venivano indicati luoghi pericolosi da esplorare. Che queste appendici lo siano? Spererei di no. Però data la vastità dei temi trattati direi che certamente chi per di qua si avventura ha scelto la pillola rossa e vuole iniziale a scoprire quanto è profonda la tana del bian coniglio. Beh che la forza sia con voi, d'altronde {\it Audentes Fortuna Iuvat}. \\
+
+Gli argomenti che seguono saranno riportati in quello che forse, almeno credo, è l'ordine migliore per esporli, in modo da non rendere pesanti eventuali richiami e per far si che quanto non spiegato nell'appendice sia però presente in una delle precedenti. Con questa logica capiterà dunque di vedere magari delle applicazione ad esempi fisici di ciò che viene spiegato in altri capitoli che riguardano quell'esempio. Quindi, benché nella sezione dei sistemi lineari vediamo la spiegazione del SOR la sua implementazione per risolvere l'equazione di Laplace si troverà nella sezione dedicata alle pde; quando però risolveremo un'equazione differenziale con una rete neurale, trattandosi di meccanismi più complessi troveremo tutto nello stesso capitolo.
+
+
+\begin{center}
+\huge
+\Tyanta\Tnuumen\Tsilmenuquernaalt\Toore \,
+\Tando\Tuure\Troomen\Ttelco\Toore \,
+\Tosse\Troomen\Tosse\Toore \, 
+\Tvala\Tanna\Troomen\Ttelco\TTdot\Tosse \,
+\Tcentereddot \,
+\Tparma\Tyanta\Tando\Tanna \,
+\Tvala\Tyanta\Tlambe\Tlambe\Tanna\Toore \,
+\Tosse \,
+\Tvala\Ttelco\TTdot\Tnuumen\Tanna
+\end{center}
+
+
+
+\newpage
+\input{texsrc/sistemi_lineari}
+\newpage
+\input{texsrc/zeri_funzioni}
+\newpage
+\input{texsrc/ode_ivp}
+\newpage
+\input{texsrc/ode_bvp}
+\newpage
+\input{texsrc/integrali}
+\newpage
+\input{texsrc/Diagonalizzazione}
+\newpage
+\input{texsrc/FFT}
+\newpage
+\input{texsrc/presa_dati_da_foto}
+\newpage
+\input{texsrc/fit}
+\newpage
+\input{texsrc/interpol}
+\newpage
+\input{texsrc/obj_prog}
+\newpage
+\input{texsrc/propagazioni_errori}
+\newpage
+\input{texsrc/montecarlo}
+\newpage
+\input{texsrc/pde}
+\newpage
+\input{texsrc/sde}
+\newpage
+\input{texsrc/ottimo}
+\newpage
+\input{texsrc/machine_learning}
+\newpage
+\input{texsrc/nnfs}
+\newpage
+\input{texsrc/parallelo}
+\newpage
+\input{texsrc/eseguibile}
+\newpage
+
+
+\section{Bibliografia e Conclusioni}
+Leggetevi il cazzo di manga.\\
+Leggetevi la documentazione.\\
+
+A parte gli scherzi, in questa sezione dovrebbe, come giusto che sia, esserci una bibliografia, delle referenze giustamente. Di certo devo ringraziare gli autori originali delle 4 brevi lezioni di cui questa versione è una rivisitazione e ampliamento (al di là delle appendici è del corso avanzato): Antonio D'Abbruzzo, Maria Domenica Galati, Francesco Maio, Damiano Lucarelli, Giulio Carotta. Ringrazio poi Francesco Sermi, il quale mi ha succeduto tenendo il corso e quindi ha anche apportato interessanti aggiunte (ad esmpio l'uso dei compilatori jit) oltre che una correzione degli errori nel testo. Inoltre ringrazio anche Alice D'autilio per il logo che vedete nella prima pagina. Per quanto concerne la bibliografia quasi tutto di ciò che ho narrato è una raccolta di argomenti che ho appreso nel corso di vari anni, principalmente cercando su internet come farle e studiando da lì. Quindi andare a rintracciare tutto sarebbe un po' difficile; van certamente citati i corsi di unipi di laboratorio 1, metodi numerici per la fisica e computing methods for experimental physics and data analysis. Inserisco quindi ora un paio di libri che in questi anni ho utilizzato. Inoltre mamma wikipedia è stata utile per non parlare di stackoverflow. Le vignette sono prese da \url{https://xkcd.com}\\
+
+Come conclusione vorrei solo dirvi che ok potrei essermi lasciato andare con le appendici, ma è giusto per dare, a chi voglia leggerle, un'idea, una breve introduzione, un impatto non brusco con la programmazione e il calcolo scientifico. Proprio per questo poi da alcune appendici si è tratto il corso avanzato.
+Ho inserito in queste appendici delle introduzioni a tutto quello che penso che uno studente di fisica possa trovarsi ad affrontare nel corso degli anni.
+Per chi segue il corso base di Python dell'aisf non mi aspetto minimamente che vengano lette tutte, spero che le lezioni vere e proprie risultino utili, e che magari, a distanza, essendosi impratichito con l'uso di Python, qualcuno si ricordi che esistono queste appendici e che magari torni a vederle e leggerle. Ho un po' più di speranza per chi segue il corso avanzato ma in ogni caso nessun problema. Se mai qualcuno leggendo queste note avesse dei suggerimenti, o notasse degli errori, o analoghi, scrivetemi pure: zenofrancesco99@gmail.com.
+
+
+
+
+
+
+
+\vfill
+\begin{quote}
+    See you Space Cowboy ...
+\end{quote}
+
+
+\begin{thebibliography}{99}
+
+\bibitem{baldo}
+Luca Baldini, Carmelo Sgrò 
+\textit{Uso del calcolatore per il laboratorio di Fisica}.
+Dispense corso laboratorio 1 presso unipi
+
+\bibitem{delia} 
+Massimo D'Elia.  
+\textit{Lezioni di Meccanica Classica}.  
+Pisa University Press, 2020. ISBN: 9788833394305
+
+\bibitem{atkinson} 
+Kendall Atkinson.  
+\textit{An Introduction to Numerical Analysis} (2nd Edition).  
+John Wiley \& Sons, 1989.
+
+\bibitem{mannella} 
+Riccardo Mannella.  
+\textit{Integration of Stochastic Differential Equations on a Computer}.  
+International Journal of Modern Physics C, Vol. 13, No. 9 (2002), pp. 1177–1194.  
+World Scientific Publishing Company.
+
+
+\bibitem{rezzolla_hyperbolic} 
+Luciano Rezzolla.  
+\textit{ECT Lecture Notes on Hyperbolic PDEs}.  
+
+\bibitem{rezzolla_fd} 
+Luciano Rezzolla.  
+\textit{Finite Difference Evolution for PDEs – Lecture Notes}.  
+
+\bibitem{moruzzi} 
+Giovanni Moruzzi.  
+\textit{Essential Python for the Physicist}.  
+Springer, 2020.
+
+\bibitem{variational} 
+Hans Petter Langtangen, Kent-Andre Mardal 
+\textit{Introduction to Numerical Methods for Variational Problems}.  
+
+\bibitem{numerical_linear_algebra} 
+Dario Bini, Milvio Capovani, Ornella Menchi
+\textit{Metodi Numerici per l'Algebra Lineare}.  
+
+\bibitem{nmfsc} 
+Kyle A. Novak 
+\textit{NMFSC – Numerical Methods for Scientific Computing}.  
+
+\bibitem{num_recipes_c} 
+William H. Press, Saul A. Teukolsky, William T. Vetterling, Brian P. Flannery.  
+\textit{Numerical Recipes in C: The Art of Scientific Computing}.  
+Cambridge University Press, 1992.
+
+\bibitem{num_recipes_f77} 
+William H. Press, Saul A. Teukolsky, William T. Vetterling, Brian P. Flannery.  
+\textit{Numerical Recipes in Fortran 77: The Art of Scientific Computing}.  
+Cambridge University Press, 1992.
+
+\bibitem{landau} 
+Rubin H. Landau, Manuel J. Paez.  
+\textit{Computational Problems for Physics: With Guided Solutions Using Python}.  
+CRC Press, 2018.
+
+\end{thebibliography}
+
+
+\end{document}
+
+\begin{lstlisting}[language=Python]
+
+[Output]
+
+\end{lstlisting}
