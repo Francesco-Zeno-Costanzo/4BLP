@@ -27,7 +27,7 @@ obj_prog/
 ODE_BVP/
 ODE_IVP/
 Ottimizzazione/
-# PDE/
+PDE/
 Presa_dati_da_foto/
 Propagazione_errori/
 SDE/
